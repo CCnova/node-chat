@@ -5,11 +5,11 @@ import { fileURLToPath } from 'url';
 import fs from 'fs';
 
 const httpServer = createServer();
-const PORT = process.env.port || 3000;
+const PORT = process.env.port || 3001;
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 httpServer.on('request', (req, res) => {
-  fs.readFile(path.join(__dirname, '..', '/client', '/index.html'), (err, fileContent) => {
+  fs.readFile(path.join(__dirname, '/index.html'), (err, fileContent) => {
     if (err) throw err;
     res.writeHead(200, { 'Content-Type': 'text/html' });
     res.end(fileContent);
