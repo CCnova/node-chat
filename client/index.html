@@ -29,6 +29,7 @@
                     </div>
                     <br>
                     <textarea id="textarea" class="form-control" placeholder="Enter message..."></textarea>
+                    <button id="submit-message">Submit</button>
                 </div>
             </div>
         </div>
@@ -38,6 +39,13 @@
     <script>
       (function () {
         const socket = io();
+        const messageArea = document.getElementById('textarea');
+        const submitBtn = document.getElementById('submit-message');
+        submitBtn.addEventListener('click', _ => {
+          socket.emit('send_message', messageArea.value);
+        });
+
+        socket.on('new_message', ({ message }) => console.log(`Got a new message: ${message}`));
       })();
     </script>
 </body>
