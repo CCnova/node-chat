@@ -21,17 +21,25 @@ httpServer.listen(PORT);
 const connections = [];
 const io = new Server(httpServer);
 
+const messages = {};
 io.on('connection', socket => {
   connections.push(socket);
   console.log(`Connected: ${connections.length} sockets connected`);
 
+  // Send stored messages
+  io.emit('message_history', messages);
+
+  // User sended a new message
+  socket.on('send_message', ({ userName, message }) => {
+    console.log(`${userName} sended a new message: ${message}`);
+    const previousUserMessages = messages?.[userName] ?? [];
+    messages[userName] = [...previousUserMessages, message];
+  });
+
+  // Client disconected
   socket.on('disconnect', data => {
     connections.splice(connections.indexOf(socket), 1);
     console.log(`Disconnected: ${connections.length} sockets connected`);
   });
 
-  socket.on('send_message', message => {
-    console.log(`Message received: ${message}`);
-    io.emit('new_message', { message });
-  });
 });

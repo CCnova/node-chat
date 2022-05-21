@@ -40,9 +40,15 @@
       (function () {
         const socket = io();
         const messageArea = document.getElementById('textarea');
+        const userNameArea = document.getElementById('username');
         const submitBtn = document.getElementById('submit-message');
+
+        socket.on('message_history', messageHistory => console.log(messageHistory));
+
         submitBtn.addEventListener('click', _ => {
-          socket.emit('send_message', messageArea.value);
+            const message = messageArea.value;
+            const userName = userNameArea.value;
+            socket.emit('send_message', { userName, message });
         });
 
         socket.on('new_message', ({ message }) => console.log(`Got a new message: ${message}`));
