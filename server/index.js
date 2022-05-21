@@ -20,6 +20,14 @@ httpServer.listen(PORT);
 
 const connections = [];
 const io = new Server(httpServer);
+const databaseJsonPath = path.join(__dirname, 'database.json');
+
+// Create database json file
+if (!fs.existsSync(databaseJsonPath)) {
+  fs.writeFile(databaseJsonPath, '{}', { flag: 'w+' }, err => {
+    if (err) throw err;
+  });
+}
 
 const messages = {};
 io.on('connection', socket => {
@@ -34,6 +42,17 @@ io.on('connection', socket => {
     console.log(`${userName} sended a new message: ${message}`);
     const previousUserMessages = messages?.[userName] ?? [];
     messages[userName] = [...previousUserMessages, message];
+
+    fs.readFile(path.join(__dirname, 'database.json'), 'utf8', (err, data) => {
+      if (err) throw err;
+      const storedData = JSON.parse(data);
+      const userMessageHistory = storedData[userName] ?? [];
+      storedData[userName] = [...userMessageHistory, message];
+      fs.writeFile(path.join(__dirname, 'database.json'), JSON.stringify(storedData), { flag: 'w' }, err => {
+        if (err) throw err;
+        console.log('Message stored in file succesfully!');
+      });
+    });
   });
 
   // Client disconected
