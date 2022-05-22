@@ -8,12 +8,32 @@ const httpServer = createServer();
 const PORT = process.env.port || 3001;
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-httpServer.on('request', (req, res) => {
+const home = (response) => {
   fs.readFile(path.join(__dirname, '/index.html'), (err, fileContent) => {
     if (err) throw err;
-    res.writeHead(200, { 'Content-Type': 'text/html' });
-    res.end(fileContent);
+    response.writeHead(200, { 'Content-Type': 'text/html' });
+    response.end(fileContent);
   });
+}
+
+const messagesHistory = (response) => {
+  const messages = JSON.parse(fs.readFileSync(databaseJsonPath, 'utf8'));
+  response.writeHead(200, { 'Content-Type': 'application/json' });
+  console.log('From messages function: ', messages);
+  response.end(JSON.stringify(messages));
+}
+
+httpServer.on('request', (req, res) => {
+  switch (req.url) {
+    case '/':
+      home(res);
+      break;
+    case '/api/messages_history':
+      messagesHistory(res);
+      break;
+    default:
+      break;
+  }
 });
 
 httpServer.listen(PORT);
@@ -29,10 +49,12 @@ if (!fs.existsSync(databaseJsonPath)) {
   });
 }
 
-const messages = {};
 io.on('connection', socket => {
   connections.push(socket);
   console.log(`Connected: ${connections.length} sockets connected`);
+
+  // Load messages from database
+  const messages = JSON.parse(fs.readFileSync(databaseJsonPath, 'utf8'));
 
   // Send stored messages
   io.emit('message_history', messages);
@@ -43,16 +65,12 @@ io.on('connection', socket => {
     const previousUserMessages = messages?.[userName] ?? [];
     messages[userName] = [...previousUserMessages, message];
 
-    fs.readFile(path.join(__dirname, 'database.json'), 'utf8', (err, data) => {
+    // Store new messages into database
+    fs.writeFile(path.join(__dirname, 'database.json'), JSON.stringify(messages), { flag: 'w' }, err => {
       if (err) throw err;
-      const storedData = JSON.parse(data);
-      const userMessageHistory = storedData[userName] ?? [];
-      storedData[userName] = [...userMessageHistory, message];
-      fs.writeFile(path.join(__dirname, 'database.json'), JSON.stringify(storedData), { flag: 'w' }, err => {
-        if (err) throw err;
-        console.log('Message stored in file succesfully!');
-      });
+      console.log('Message stored in file succesfully!');
     });
+
   });
 
   // Client disconected
