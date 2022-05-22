@@ -29,6 +29,7 @@ Now open your browser and go to `http://localhost:3001/`, you can start sending 
 ## TO-DO
 
 * Implement client using React.
+* Create script to setup client and server with one command from root folder.
 * Create user authentication.
 * Separate sessions through hash number.
 * Deploy project to Heroku.
