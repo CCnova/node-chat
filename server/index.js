@@ -56,9 +56,6 @@ io.on('connection', socket => {
   // Load messages from database
   const messages = JSON.parse(fs.readFileSync(databaseJsonPath, 'utf8'));
 
-  // Send stored messages
-  io.emit('message_history', messages);
-
   // User sended a new message
   socket.on('send_message', ({ userName, message }) => {
     console.log(`${userName} sended a new message: ${message}`);
@@ -66,7 +63,7 @@ io.on('connection', socket => {
     messages[userName] = [...previousUserMessages, message];
 
     // Store new messages into database
-    fs.writeFile(path.join(__dirname, 'database.json'), JSON.stringify(messages), { flag: 'w' }, err => {
+    fs.writeFile(databaseJsonPath, JSON.stringify(messages), { flag: 'w' }, err => {
       if (err) throw err;
       console.log('Message stored in file succesfully!');
     });
