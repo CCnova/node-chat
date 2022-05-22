@@ -62,9 +62,10 @@ io.on('connection', socket => {
     const previousUserMessages = messages?.[userName] ?? [];
     messages[userName] = [...previousUserMessages, message];
 
-    // Store new messages into database
+    // Store new messages into database and notify client
     fs.writeFile(databaseJsonPath, JSON.stringify(messages), { flag: 'w' }, err => {
       if (err) throw err;
+      io.emit('new_message', { userName, message });
       console.log('Message stored in file succesfully!');
     });
 

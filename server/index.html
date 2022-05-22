@@ -60,25 +60,31 @@
         const messageArea = document.getElementById("textarea");
         const userNameArea = document.getElementById("username");
         const submitBtn = document.getElementById("submit-message");
+        const messagesBlock = document.getElementById("messages-block");
 
         submitBtn.addEventListener("click", (_) => {
           const message = messageArea.value;
           const userName = userNameArea.value;
           socket.emit("send_message", { userName, message });
+          messageArea.value = '';
         });
 
-        socket.on("new_message", ({ message }) =>
-          console.log(`Got a new message: ${message}`)
-        );
+        socket.on("new_message", ({ userName, message }) => {
+          const paragraph = document.createElement("p");
+          paragraph.textContent = `${userName}: ${message}`;
+          messagesBlock.appendChild(paragraph);
+        });
 
+        // Get Messages history and add them to DOM
         fetch("http://localhost:3001/api/messages_history")
-          .then(response => response.json())
-          .then(messageHistory => {
-            const messagesBlock = document.getElementById("messages-block");
-            Object.entries(messageHistory).forEach(([userName, message]) => {
-                const paragraph = document.createElement('p');
+          .then((response) => response.json())
+          .then((messageHistory) => {
+            Object.entries(messageHistory).forEach(([userName, messages]) => {
+              messages.forEach((message) => {
+                const paragraph = document.createElement("p");
                 paragraph.textContent = `${userName}: ${message}`;
                 messagesBlock.appendChild(paragraph);
+              });
             });
           });
       })();
